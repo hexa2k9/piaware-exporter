@@ -18,6 +18,7 @@ class PiAwareMetricsExporter():
         self.piaware_state = Enum('piaware_service_state', 'PiAware Service Status', states=['green', 'amber', 'red', 'N/A'])
         self.flightaware_connection_state = Enum('piaware_connect_to_flightaware_state', 'FlightAware Connection Status', states=['green', 'amber', 'red', 'N/A'])
         self.mlat_state = Enum('piaware_mlat_state', 'MLAT Status', states=['green', 'amber', 'red', 'N/A'])
+        self.gps_state = Enum('piaware_gps_state', 'GPS Status', states=['green', 'amber', 'red', 'N/A'])
 
     def start_fetch_loop(self):
         ''' Main loop to do periodic fetches of piaware status.json
@@ -51,6 +52,7 @@ class PiAwareMetricsExporter():
             self.flightaware_connection_state.state("N/A")
             self.mlat_state.state("N/A")
             self.radio_state.state("N/A")
+            self.gps_state.state("N/A")
             return
 
         logger.info(f'GET {piaware_status_url} - Response: {response.status_code} - OK')
@@ -61,6 +63,7 @@ class PiAwareMetricsExporter():
         flightaware_connection = request_json.get("adept")
         mlat = request_json.get("mlat")
         radio = request_json.get("radio")
+        gps = request_json.get("gps")
 
         if piaware:
             status = piaware.get("status")
@@ -100,3 +103,13 @@ class PiAwareMetricsExporter():
                 self.radio_state.state("amber")
             else:
                 self.radio_state.state("red")
+
+        if gps:
+            status = gps.get("status")
+            if status == "green":
+                self.gps_state.state("green")
+            elif status == "amber":
+                self.gps_state.state("amber")
+            else:
+                self.gps_state.state("red")
+
