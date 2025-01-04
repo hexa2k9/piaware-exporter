@@ -24,4 +24,5 @@ COPY --from=builder /opt/virtualenv /opt/virtualenv
 
 EXPOSE 9101
 
-CMD ["/opt/virtualenv/bin/python", "/opt/piaware-exporter/main.py"]
+ENTRYPOINT ["/opt/virtualenv/bin/python", "/opt/piaware-exporter/main.py"]
+CMD ["--help"]
