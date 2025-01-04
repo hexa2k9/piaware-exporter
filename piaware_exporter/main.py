@@ -59,8 +59,13 @@ def main():
     args = getArgs()
 
 
+    if args.piaware_port == "443":
+        proto = "https"
+    else:
+        proto = "http"
+
     # Create PiAwareMetrics object that reads and exports status information
-    piaware_exporter = PiAwareMetricsExporter(args.piaware_host, args.piaware_port, args.fetch_interval)
+    piaware_exporter = PiAwareMetricsExporter(args.piaware_host, args.piaware_port, args.fetch_interval, proto)
 
     # Bring up endpoint to expose the Prometheus metrics on
     try:

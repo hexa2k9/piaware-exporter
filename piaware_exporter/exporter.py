@@ -6,11 +6,11 @@ import time
 logger = logging.getLogger()
 
 class PiAwareMetricsExporter():
-    ''' Fetches status from PiAware, generates Prometheus metrics with that data, and 
+    ''' Fetches status from PiAware, generates Prometheus metrics with that data, and
         exports them to an endpoint.
     '''
-    def __init__(self, host, port, fetch_interval):
-        self.piaware_status_url = f"http://{host}:{port}"
+    def __init__(self, host, port, fetch_interval, proto = "http"):
+        self.piaware_status_url = f"{proto}://{host}:{port}"
         self.fetch_interval = fetch_interval
 
         # Prometheus metrics to collect and expose
