@@ -5,35 +5,49 @@ import time
 
 logger = logging.getLogger()
 
-class PiAwareMetricsExporter():
-    ''' Fetches status from PiAware, generates Prometheus metrics with that data, and
-        exports them to an endpoint.
-    '''
-    def __init__(self, host, port, fetch_interval, proto = "http"):
+
+class PiAwareMetricsExporter:
+    """Fetches status from PiAware, generates Prometheus metrics with that data, and
+    exports them to an endpoint.
+    """
+
+    def __init__(self, host, port, fetch_interval, proto="http"):
         self.piaware_status_url = f"{proto}://{host}:{port}"
         self.fetch_interval = fetch_interval
 
         # Prometheus metrics to collect and expose
-        self.radio_state = Enum('piaware_radio_state', 'Radio Status', states=['green', 'amber', 'red', 'N/A'])
-        self.piaware_state = Enum('piaware_service_state', 'PiAware Service Status', states=['green', 'amber', 'red', 'N/A'])
-        self.flightaware_connection_state = Enum('piaware_connect_to_flightaware_state', 'FlightAware Connection Status', states=['green', 'amber', 'red', 'N/A'])
-        self.mlat_state = Enum('piaware_mlat_state', 'MLAT Status', states=['green', 'amber', 'red', 'N/A'])
-        self.gps_state = Enum('piaware_gps_state', 'GPS Status', states=['green', 'amber', 'red', 'N/A'])
+        self.radio_state = Enum(
+            "piaware_radio_state",
+            "Radio Status",
+            states=["green", "amber", "red", "N/A"],
+        )
+        self.piaware_state = Enum(
+            "piaware_service_state",
+            "PiAware Service Status",
+            states=["green", "amber", "red", "N/A"],
+        )
+        self.flightaware_connection_state = Enum(
+            "piaware_connect_to_flightaware_state",
+            "FlightAware Connection Status",
+            states=["green", "amber", "red", "N/A"],
+        )
+        self.mlat_state = Enum(
+            "piaware_mlat_state", "MLAT Status", states=["green", "amber", "red", "N/A"]
+        )
+        self.gps_state = Enum(
+            "piaware_gps_state", "GPS Status", states=["green", "amber", "red", "N/A"]
+        )
 
     def start_fetch_loop(self):
-        ''' Main loop to do periodic fetches of piaware status.json
-
-        '''
+        """Main loop to do periodic fetches of piaware status.json"""
         while True:
             self.fetch_piaware_status()
             time.sleep(self.fetch_interval)
 
     def fetch_piaware_status(self):
-        ''' Fetch piaware status.json and update Prometheus metric
-
-        '''
+        """Fetch piaware status.json and update Prometheus metric"""
         try:
-            piaware_status_url = f'{self.piaware_status_url}/status.json'
+            piaware_status_url = f"{self.piaware_status_url}/status.json"
             response = requests.get(url=piaware_status_url)
         except requests.exceptions.ConnectionError:
             logger.error(f"Could not connect to {self.piaware_status_url}")
@@ -45,9 +59,11 @@ class PiAwareMetricsExporter():
             logger.error(f"Error reading piaware status.json: {e}")
             return
 
-        if 200 < response.status_code >= 300 :
+        if 200 < response.status_code >= 300:
             # Non 200 response code received reading piaware status.json
-            logger.error(f'GET {piaware_status_url} - Response: {response.status_code} - ERROR')
+            logger.error(
+                f"GET {piaware_status_url} - Response: {response.status_code} - ERROR"
+            )
             self.piaware_state.state("N/A")
             self.flightaware_connection_state.state("N/A")
             self.mlat_state.state("N/A")
@@ -55,7 +71,7 @@ class PiAwareMetricsExporter():
             self.gps_state.state("N/A")
             return
 
-        logger.info(f'GET {piaware_status_url} - Response: {response.status_code} - OK')
+        logger.info(f"GET {piaware_status_url} - Response: {response.status_code} - OK")
 
         request_json = response.json()
 
@@ -74,7 +90,6 @@ class PiAwareMetricsExporter():
             else:
                 self.piaware_state.state("red")
 
-
         if flightaware_connection:
             status = flightaware_connection.get("status")
             if status == "green":
@@ -84,7 +99,6 @@ class PiAwareMetricsExporter():
             else:
                 self.flightaware_connection_state.state("red")
 
-
         if mlat:
             status = mlat.get("status")
             if status == "green":
@@ -93,7 +107,6 @@ class PiAwareMetricsExporter():
                 self.mlat_state.state("amber")
             else:
                 self.mlat_state.state("red")
-
 
         if radio:
             status = radio.get("status")
@@ -112,4 +125,3 @@ class PiAwareMetricsExporter():
                 self.gps_state.state("amber")
             else:
                 self.gps_state.state("red")
-
