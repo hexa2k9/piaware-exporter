@@ -1,2 +1,2 @@
-prometheus-client
-requests
+prometheus-client==0.21.1
+requests==2.32.3

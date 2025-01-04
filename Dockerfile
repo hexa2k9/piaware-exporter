@@ -1,16 +1,27 @@
-FROM python:3.10-alpine
+FROM python:3.13-alpine3.20 AS builder
 
-# Preventing Python from writing pyc files to disk
-ENV PYTHONDONTWRITEBYTECODE 1
-# Preventing Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
 
-WORKDIR /piaware-exporter
+WORKDIR /work
+ADD requirements.txt /work
 
-COPY . /piaware-exporter/
+RUN set -eux \
+  && pip install virtualenv \
+  && virtualenv /opt/virtualenv \
+  && /opt/virtualenv/bin/pip install -r requirements.txt
 
-RUN pip install -r requirements.txt
+FROM python:3.13-alpine3.20
+
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
+
+RUN set -eux \
+    && apk --no-cache upgrade
+
+ADD piaware_exporter /opt/piaware-exporter
+COPY --from=builder /opt/virtualenv /opt/virtualenv
 
 EXPOSE 9101
 
-ENTRYPOINT ["python", "piaware_exporter/main.py"]
+CMD ["/opt/virtualenv/bin/python", "/opt/piaware-exporter/main.py"]
