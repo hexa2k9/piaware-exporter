@@ -48,7 +48,7 @@ class PiAwareMetricsExporter:
         """Fetch piaware status.json and update Prometheus metric"""
         try:
             piaware_status_url = f"{self.piaware_status_url}/status.json"
-            response = requests.get(url=piaware_status_url)
+            response = requests.get(url=piaware_status_url, params={"ts": time.time()})
         except requests.exceptions.ConnectionError:
             logger.error(f"Could not connect to {self.piaware_status_url}")
             return
